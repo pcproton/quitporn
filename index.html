@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Clear — Break Free</title>
+<meta name="description" content="A 40-day Islamic habit tracker to help you break free.">
+<meta name="theme-color" content="#2d5a3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clear">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2ee;
+    --surface: #ffffff;
+    --text: #1a1814;
+    --muted: #7a7570;
+    --accent: #2d5a3d;
+    --accent-light: #e8f0ea;
+    --danger: #c0392b;
+    --danger-light: #fde8e6;
+    --warn: #d4a017;
+    --border: #e0dbd4;
+    --day-done: #2d5a3d;
+    --day-fail: #c0392b;
+    --day-empty: #e8e4de;
+    --day-future: #f0ede8;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+    --nav-bg: #ffffff;
+    --streak-card-bg: #2d5a3d;
+    --modal-bg: #ffffff;
+    --info-text: #444;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --text: #f0ede8;
+    --muted: #8a8480;
+    --accent: #4a8a5d;
+    --accent-light: #1a2e20;
+    --danger: #e05a4a;
+    --danger-light: #2e1512;
+    --warn: #d4a017;
+    --border: #2a2a2a;
+    --day-done: #4a8a5d;
+    --day-fail: #c0392b;
+    --day-empty: #252525;
+    --day-future: #1e1e1e;
+    --shadow: 0 2px 16px rgba(0,0,0,0.35);
+    --nav-bg: #141414;
+    --streak-card-bg: #1a2e20;
+    --modal-bg: #1e1e1e;
+    --info-text: #c0bab4;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f0f0f; --surface: #1a1a1a; --text: #f0ede8; --muted: #8a8480;
+      --accent: #4a8a5d; --accent-light: #1a2e20; --danger: #e05a4a;
+      --danger-light: #2e1512; --warn: #d4a017; --border: #2a2a2a;
+      --day-done: #4a8a5d; --day-fail: #c0392b; --day-empty: #252525;
+      --day-future: #1e1e1e; --shadow: 0 2px 16px rgba(0,0,0,0.35);
+      --nav-bg: #141414; --streak-card-bg: #1a2e20; --modal-bg: #1e1e1e;
+      --info-text: #c0bab4;
+    }
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; transition: background 0.3s, color 0.3s; }
+
+  /* NAV */
+  nav { display: flex; align-items: center; justify-content: center; padding: 14px 16px; background: var(--nav-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; gap: 8px; }
+  .nav-logo { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .nav-logo span { font-family: 'DM Serif Display', serif; font-size: 14px; color: var(--accent); letter-spacing: -0.3px; }
+  .nav-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 10px; padding: 3px; }
+  .nav-btn { padding: 7px 16px; border: none; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; transition: all 0.2s; background: transparent; color: var(--muted); white-space: nowrap; }
+  .nav-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 6px rgba(0,0,0,0.1); }
+  .theme-toggle { background: var(--bg); border: 1px solid var(--border); border-radius: 99px; padding: 5px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted); transition: all 0.2s; display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto; }
+  .theme-toggle:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+  .theme-icon { font-size: 13px; }
+
+  /* PAGES */
+  .page { display: none; padding: 24px 16px 48px; max-width: 800px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ONBOARDING OVERLAY */
+  #onboarding { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; }
+  .ob-slides { width: 100%; max-width: 420px; }
+  .ob-slide { display: none; text-align: center; animation: fadeIn 0.4s ease; }
+  .ob-slide.active { display: block; }
+  .ob-emoji { font-size: 56px; margin-bottom: 20px; display: block; }
+  .ob-title { font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
+  .ob-body { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 32px; }
+  .ob-body strong { color: var(--text); }
+  .ob-btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+  .ob-btn:hover { background: #1e3d2a; }
+  .ob-dots { display: flex; justify-content: center; gap: 7px; margin-top: 20px; }
+  .ob-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--border); transition: all 0.3s; }
+  .ob-dot.active { background: var(--accent); width: 20px; }
+
+  /* TRACKER */
+  .tracker-header { text-align: center; margin-bottom: 24px; }
+  .tracker-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .tracker-header p { color: var(--muted); font-size: 14px; }
+
+  .streak-card { background: var(--streak-card-bg); color: white; border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 20px; }
+  .streak-num { font-family: 'DM Serif Display', serif; font-size: 68px; line-height: 1; display: block; }
+  .streak-label { font-size: 12px; opacity: 0.8; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .streak-sub { font-size: 12px; opacity: 0.6; margin-top: 8px; }
+
+  /* Today prompt */
+  .today-prompt { background: var(--surface); border: 1.5px solid var(--accent); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .today-prompt-text { font-size: 14px; font-weight: 500; color: var(--text); }
+  .today-prompt-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .today-done-badge { background: var(--accent-light); color: var(--accent); font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 99px; white-space: nowrap; }
+
+  /* Grid */
+  .grid-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 500; }
+  .day-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 16px; }
+
+  .day-cell {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: var(--day-empty);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: default;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    user-select: none;
+    border: 2px solid transparent;
+    min-height: 38px;
+  }
+  .day-cell.future { background: var(--day-future); color: var(--border); }
+  .day-cell.done { background: var(--day-done); color: white; cursor: pointer; }
+  .day-cell.fail { background: var(--day-fail); color: white; cursor: pointer; }
+  .day-cell.today { border-color: var(--accent); cursor: pointer; }
+  .day-cell.done:hover, .day-cell.fail:hover { transform: scale(1.08); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+  .day-cell .tick { font-size: 13px; }
+
+  /* Buttons */
+  .tracker-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+  .btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-success { background: var(--accent); color: white; }
+  .btn-success:hover { background: #1e3d2a; }
+  .btn-danger { background: var(--danger-light); color: var(--danger); }
+  .btn-danger:hover { filter: brightness(0.95); }
+  .btn-reset { background: var(--border); color: var(--muted); flex: none; padding: 14px 18px; font-size: 13px; }
+  .btn-reset:hover { filter: brightness(0.95); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .tracker-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat-card { background: var(--surface); border-radius: var(--radius); padding: 14px; text-align: center; box-shadow: var(--shadow); }
+  .stat-val { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--accent); }
+  .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+  /* Notification bar */
+  .notif-bar { background: var(--accent-light); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .notif-bar-text { flex: 1; font-size: 13px; color: var(--accent); }
+  .notif-bar-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+  .notif-bar-dismiss { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 2px; }
+
+  /* RELAPSE MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--modal-bg); border-radius: 20px; padding: 32px 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.25); animation: fadeIn 0.25s ease; }
+
+  /* Relapse card content */
+  .relapse-dua { background: var(--accent-light); border-radius: 10px; padding: 16px; margin: 16px 0; text-align: right; }
+  .relapse-dua-ar { font-size: 18px; color: var(--accent); line-height: 1.8; margin-bottom: 6px; font-weight: 500; }
+  .relapse-dua-en { font-size: 12px; color: var(--muted); text-align: center; font-style: italic; }
+  .relapse-reasons { background: var(--bg); border-radius: 10px; padding: 14px; margin: 14px 0; text-align: left; }
+  .relapse-reasons-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
+  .relapse-trigger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .trigger-btn { padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); cursor: pointer; transition: all 0.15s; }
+  .trigger-btn:hover, .trigger-btn.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+  .relapse-steps { text-align: left; margin: 14px 0; }
+  .relapse-step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 13px; color: var(--text); }
+  .relapse-step-num { background: var(--accent); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* HOW TO QUIT */
+  .quit-header { margin-bottom: 28px; }
+  .quit-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .quit-header p { color: var(--muted); max-width: 520px; font-size: 14px; }
+
+  .progress-section { background: var(--surface); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 24px; box-shadow: var(--shadow); }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .progress-title { font-weight: 500; font-size: 14px; }
+  .progress-pct { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); }
+  .progress-bar-bg { height: 10px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+  .progress-sub { font-size: 12px; color: var(--muted); }
+
+  /* Tasks — unlock progression */
+  .tasks-phase { margin-bottom: 24px; }
+  .phase-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .phase-badge { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 9px; border-radius: 99px; }
+  .phase-badge.unlocked { background: var(--accent-light); color: var(--accent); }
+  .phase-badge.locked { background: var(--border); color: var(--muted); }
+  .phase-label { font-size: 13px; font-weight: 500; color: var(--text); }
+  .phase-lock { font-size: 11px; color: var(--muted); }
+  .tasks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .tasks-grid { grid-template-columns: 1fr; } .day-grid { grid-template-columns: repeat(5, 1fr); } .nav-logo span { display: none; } }
+
+  .task-card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; position: relative; overflow: hidden; }
+  .task-card:hover:not(.locked-card) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  .task-card.completed { border-color: var(--accent); background: var(--accent-light); }
+  .task-card.completed::after { content: '✓'; position: absolute; top: 12px; right: 14px; color: var(--accent); font-size: 15px; font-weight: bold; }
+  .task-card.locked-card { opacity: 0.45; cursor: not-allowed; }
+  .task-icon { font-size: 22px; margin-bottom: 8px; }
+  .task-title { font-weight: 500; font-size: 13px; margin-bottom: 3px; }
+  .task-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+  /* Info sections */
+  .info-section { background: var(--surface); border-radius: var(--radius); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .info-section h2 { font-family: 'DM Serif Display', serif; font-size: 19px; margin-bottom: 8px; }
+  .info-section p { color: var(--info-text); font-size: 14px; line-height: 1.7; }
+  .info-section ul { padding-left: 18px; }
+  .info-section li { color: var(--info-text); font-size: 14px; line-height: 1.9; }
+  .tag { display: inline-block; background: var(--accent-light); color: var(--accent); font-size: 10px; font-weight: 500; padding: 3px 10px; border-radius: 99px; margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* Note input on day popover */
+  .note-input { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); background: var(--bg); margin: 8px 0; resize: none; height: 60px; }
+  .note-input:focus { outline: none; border-color: var(--accent); }
+
+  /* INSTALL BANNER */
+  #install-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 400; padding: 0 16px 16px; pointer-events: none; }
+  .install-card { background: var(--modal-bg); border-radius: 20px 20px 16px 16px; padding: 20px; box-shadow: 0 -4px 32px rgba(0,0,0,0.18); pointer-events: all; animation: slideUp 0.4s cubic-bezier(.4,0,.2,1); border: 1px solid var(--border); }
+  @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .install-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .install-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+  .install-title { font-family: 'DM Serif Display', serif; font-size: 17px; margin-bottom: 2px; }
+  .install-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .install-steps { margin-bottom: 16px; }
+  .install-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .install-step:last-child { border-bottom: none; }
+  .install-step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .install-step-icon { font-size: 18px; flex-shrink: 0; }
+  .install-btns { display: flex; gap: 8px; }
+  .install-btn-primary { flex: 1; padding: 13px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .install-btn-dismiss { padding: 13px 16px; background: var(--border); color: var(--muted); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+  /* iOS share arrow pulse */
+  .ios-arrow { display: inline-block; animation: arrowBounce 1.2s ease infinite; }
+  @keyframes arrowBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } } position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: var(--bg); padding: 12px 22px; border-radius: 99px; font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; white-space: nowrap; max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-slides">
+    <div class="ob-slide active" id="ob-0">
+      <span class="ob-emoji">☪️</span>
+      <h1 class="ob-title">The 40-Day Challenge</h1>
+      <p class="ob-body">The Prophet ﷺ said: <strong>"Whoever gives up something for the sake of Allah, Allah will replace it with something better."</strong><br><br>40 days is how long it takes to begin breaking a habit at the neurological level. This app holds you accountable — one day at a time.</p>
+      <button class="ob-btn" onclick="obNext()">Let's begin →</button>
+    </div>
+    <div class="ob-slide" id="ob-1">
+      <span class="ob-emoji">🧠</span>
+      <h1 class="ob-title">How your brain heals</h1>
+      <p class="ob-body">Pornography floods your brain with dopamine — the same way drugs do. Each clean day <strong>literally rewires your neural pathways back</strong> to their natural state. Days 1–7 are hardest. After day 14, clarity starts returning. After day 30, you'll feel like a different person.</p>
+      <button class="ob-btn" onclick="obNext()">Got it →</button>
+    </div>
+    <div class="ob-slide" id="ob-2">
+      <span class="ob-emoji">📋</span>
+      <h1 class="ob-title">How to use this app</h1>
+      <p class="ob-body">Every day, open the app and tap <strong>✓ Clean Day</strong> or <strong>✗ Relapsed</strong>. If you relapse, the app won't judge you — it will guide you back. Visit <strong>How to Quit</strong> to build your recovery toolkit step by step.</p>
+      <button class="ob-btn" onclick="obFinish()">Start my journey</button>
+    </div>
+  </div>
+  <div class="ob-dots">
+    <div class="ob-dot active" id="dot-0"></div>
+    <div class="ob-dot" id="dot-1"></div>
+    <div class="ob-dot" id="dot-2"></div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-logo">
+    <span style="font-size:16px;">☪️</span>
+    <span>Muslim Made</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="showPage('tracker', this)">Tracker</button>
+    <button class="nav-btn" onclick="showPage('quit', this)">How to Quit</button>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle dark mode">
+    <span class="theme-icon" id="theme-icon">🌙</span>
+    <span id="theme-label">Dark</span>
+  </button>
+</nav>
+
+<!-- TRACKER PAGE -->
+<div class="page active" id="page-tracker">
+  <div class="tracker-header">
+    <h1>40-Day Challenge</h1>
+    <p>Log every day. Stay consistent. Every day counts.</p>
+  </div>
+
+  <div id="notif-bar-wrap"></div>
+
+  <div class="streak-card">
+    <span class="streak-num" id="streak-num">0</span>
+    <div class="streak-label">Day Streak</div>
+    <div class="streak-sub" id="streak-sub">Start your journey today</div>
+  </div>
+
+  <!-- Today prompt -->
+  <div class="today-prompt" id="today-prompt">
+    <div>
+      <div class="today-prompt-text" id="today-prompt-text">How was today?</div>
+      <div class="today-prompt-sub" id="today-prompt-sub">Tap below to log Day 1</div>
+    </div>
+    <div id="today-status-badge"></div>
+  </div>
+
+  <div class="grid-label">Your 40 Days</div>
+  <div class="day-grid" id="day-grid"></div>
+
+  <div class="tracker-actions">
+    <button class="btn btn-success" id="btn-clean" onclick="markDay(true)">✓ Clean Day</button>
+    <button class="btn btn-danger" id="btn-relapse" onclick="initiateRelapse()">✗ Relapsed</button>
+    <button class="btn btn-reset" onclick="resetTracker()">Reset</button>
+  </div>
+
+  <div class="tracker-stats">
+    <div class="stat-card"><div class="stat-val" id="stat-clean">0</div><div class="stat-lbl">Clean Days</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-best">0</div><div class="stat-lbl">Best Streak</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-remain">40</div><div class="stat-lbl">Days Left</div></div>
+  </div>
+</div>
+
+<!-- HOW TO QUIT PAGE -->
+<div class="page" id="page-quit">
+  <div class="quit-header">
+    <h1>How to Quit</h1>
+    <p>Build your recovery toolkit step by step. Tasks unlock as you progress — complete each phase before moving on.</p>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-top">
+      <div class="progress-title">Toolkit Progress</div>
+      <div class="progress-pct" id="prog-pct">0%</div>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="progress-sub" id="prog-sub">Start with Phase 1 — your first line of defence</div>
+  </div>
+
+  <div id="tasks-container"></div>
+
+  <div class="info-section">
+    <div class="tag">Spirituality</div>
+    <h2>The Islamic Perspective</h2>
+    <p>Guarding one's gaze (lowering the eyes) is a Quranic command (24:30). The Prophet ﷺ said: <em>"The eyes commit zina and their zina is the look."</em> Use your five daily prayers as anchor points — each salah is a reset. Recite <em>Astaghfirullah</em> when an urge hits; it redirects the mind and brings peace. Voluntary fasts on Mondays and Thursdays are also prescribed as a shield against desire.</p>
+  </div>
+  <div class="info-section">
+    <div class="tag">Why it's hard</div>
+    <h2>Understanding the Addiction</h2>
+    <p>Pornography triggers the same dopamine pathways as drugs and alcohol. Over time, the brain rewires itself — requiring more stimulation for the same effect. This is called neuroplasticity, and the good news is: it works in reverse too. Every clean day literally rewires your brain back to its natural state.</p>
+  </div>
+  <div class="info-section">
+    <div class="tag">Science</div>
+    <h2>What Happens When You Stop</h2>
+    <ul>
+      <li><strong>Days 1–7:</strong> Cravings peak. Your brain is recalibrating dopamine levels.</li>
+      <li><strong>Days 7–14:</strong> Mood may dip — this is the "flatline." It passes.</li>
+      <li><strong>Days 14–30:</strong> Mental clarity improves. Energy increases. Cravings reduce.</li>
+      <li><strong>Days 30–90:</strong> New neural pathways solidify. Confidence and motivation return.</li>
+    </ul>
+  </div>
+  <div class="info-section">
+    <div class="tag">Triggers</div>
+    <h2>Identify & Interrupt Your Triggers</h2>
+    <p>Common triggers: boredom, loneliness, stress, and late nights alone with a device. The moment you notice a trigger, use the 5-second rule — count 5-4-3-2-1 and physically move. Stand up, go outside, or call someone. The urge typically passes in 10–20 minutes if you don't feed it.</p>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal-overlay" id="modal-reset">
+  <div class="modal-box">
+    <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:10px;color:var(--text);">Reset Tracker?</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6;">This will wipe all 40 days of progress. This cannot be undone.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeModals()" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;color:var(--muted);">Cancel</button>
+      <button onclick="confirmReset()" style="flex:1;padding:12px;border:none;border-radius:10px;background:#c0392b;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">Yes, Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- RELAPSE MODAL -->
+<div class="modal-overlay" id="modal-relapse">
+  <div class="modal-box" style="max-width:420px;">
+    <div style="font-size:30px;margin-bottom:8px;">🤲</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:6px;color:var(--text);">Return to Allah</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6;">Every son of Adam makes mistakes, and the best of those who make mistakes are those who repent.</div>
+    <div class="relapse-dua">
+      <div class="relapse-dua-ar">أَسْتَغْفِرُ اللهَ وَأَتُوبُ إِلَيْهِ</div>
+      <div class="relapse-dua-en">"I seek forgiveness from Allah and I repent to Him"</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">Recite this 3 times now</div>
+    </div>
+    <div class="relapse-reasons">
+      <div class="relapse-reasons-title">What triggered you? (helps identify patterns)</div>
+      <div class="relapse-trigger-grid" id="trigger-grid">
+        <button class="trigger-btn" data-trigger="boredom" onclick="selectTrigger(this)">😑 Boredom</button>
+        <button class="trigger-btn" data-trigger="loneliness" onclick="selectTrigger(this)">💔 Loneliness</button>
+        <button class="trigger-btn" data-trigger="stress" onclick="selectTrigger(this)">😤 Stress</button>
+        <button class="trigger-btn" data-trigger="late-night" onclick="selectTrigger(this)">🌙 Late night</button>
+        <button class="trigger-btn" data-trigger="social-media" onclick="selectTrigger(this)">📱 Social media</button>
+        <button class="trigger-btn" data-trigger="other" onclick="selectTrigger(this)">🔍 Other</button>
+      </div>
+    </div>
+    <div class="relapse-steps">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;font-weight:500;">Your next 3 actions right now</div>
+      <div class="relapse-step"><div class="relapse-step-num">1</div><div>Close the browser tab. Lock your phone and put it face-down.</div></div>
+      <div class="relapse-step"><div class="relapse-step-num">2</div><div>Stand up and drink a glass of water. Physically move your body.</div></div>
+      <div class="relapse-step"><div class="relapse-step-num">3</div><div>Make wudu. The act of purification restores mental clarity.</div></div>
+    </div>
+    <button onclick="confirmRelapse()" style="width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px;">I've done this — log the day and continue</button>
+    <button onclick="closeModals()" style="width:100%;padding:10px;background:none;color:var(--muted);border:none;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-top:6px;">Close without logging</button>
+  </div>
+</div>
+
+<!-- DAY NOTE MODAL -->
+<div class="modal-overlay" id="modal-note">
+  <div class="modal-box" style="max-width:360px;">
+    <div style="font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:6px;color:var(--text);" id="note-modal-title">Day note</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Add a note about this day — your thoughts, what helped, what didn't.</div>
+    <textarea class="note-input" id="note-textarea" placeholder="e.g. Felt strong today. Went for a walk when the urge hit..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="saveNote()" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">Save note</button>
+      <button onclick="deleteNoteDay()" style="padding:11px 14px;background:var(--danger-light);color:var(--danger);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Delete day</button>
+      <button onclick="closeModals()" style="padding:11px 14px;background:var(--border);color:var(--muted);border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL BANNER (injected by JS) -->
+<div id="install-banner" style="display:none;"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TOTAL = 40;
+  let state = { days: {}, notes: {}, currentDay: 1 };
+  let tasks = {};
+  let selectedTrigger = null;
+  let noteTargetDay = null;
+
+  /* ===== TASK PHASES ===== */
+  const TASK_PHASES = [
+    {
+      id: 'phase1',
+      label: 'Phase 1 — First line of defence',
+      unlockAfter: 0,
+      tasks: [
+        { id: 'dua',   icon: '🤲', title: "Make du'a daily",           desc: 'Recite Astaghfirullah 100× each morning. Takes 3 minutes.' },
+        { id: 'block', icon: '🔒', title: 'Install a content blocker', desc: 'Cold Turkey (desktop) or BlockSite (mobile). Do this right now.' },
+        { id: 'phone', icon: '📵', title: 'Phone out of bedroom',       desc: 'Charge it in another room tonight. This single habit is transformative.' },
+        { id: 'journal', icon: '📓', title: 'Write your "why"',         desc: 'List 3 reasons you want to quit. Screenshot it. Read when cravings hit.' },
+      ]
+    },
+    {
+      id: 'phase2',
+      label: 'Phase 2 — Build your defence',
+      unlockAfter: 4,
+      tasks: [
+        { id: 'accountability', icon: '🤝', title: 'Tell one person you trust', desc: 'Accountability partners double your success rate. Pick one person today.' },
+        { id: 'exercise',       icon: '🏃', title: 'Exercise today',            desc: 'Even a 20-min walk floods your brain with healthy dopamine.' },
+        { id: 'sleep',          icon: '😴', title: 'Fix your sleep schedule',   desc: 'Set a consistent bedtime. Fatigue is your #1 trigger.' },
+        { id: 'media',          icon: '📱', title: 'Audit your social media',   desc: 'Unfollow or mute any account that could become a trigger.' },
+      ]
+    },
+    {
+      id: 'phase3',
+      label: 'Phase 3 — Long-term freedom',
+      unlockAfter: 8,
+      tasks: [
+        { id: 'urge',    icon: '⏱️', title: 'Practise the 10-min rule', desc: 'When an urge hits, delay 10 minutes. Write what triggered it.' },
+        { id: 'replace', icon: '🎯', title: 'Find a replacement habit', desc: 'Decide one thing you do instead of the habit when urges arise.' },
+      ]
+    }
+  ];
+
+  /* ===== STORAGE ===== */
+  function saveData() {
+    try {
+      localStorage.setItem('clear-tracker', JSON.stringify(state));
+      localStorage.setItem('clear-tasks', JSON.stringify(tasks));
+    } catch(e) {}
+  }
+
+  function loadData() {
+    try { const t = localStorage.getItem('clear-tracker'); if (t) state = JSON.parse(t); } catch(e) {}
+    try { const tk = localStorage.getItem('clear-tasks'); if (tk) tasks = JSON.parse(tk); } catch(e) {}
+    if (!state.notes) state.notes = {};
+  }
+
+  /* ===== TOAST ===== */
+  let toastTimer = null;
+  function showToast(msg, duration) {
+    duration = duration || 3500;
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  /* ===== ONBOARDING ===== */
+  let obCurrent = 0;
+  function obNext() {
+    document.getElementById('ob-' + obCurrent).classList.remove('active');
+    document.getElementById('dot-' + obCurrent).classList.remove('active');
+    obCurrent++;
+    document.getElementById('ob-' + obCurrent).classList.add('active');
+    document.getElementById('dot-' + obCurrent).classList.add('active');
+  }
+  function obFinish() {
+    localStorage.setItem('clear-ob-done', '1');
+    document.getElementById('onboarding').style.display = 'none';
+    // Show install prompt after a short delay so the app is visible first
+    setTimeout(showInstallBanner, 1200);
+  }
+
+  /* ===== PWA INSTALL ===== */
+  let deferredInstallPrompt = null; // captured from beforeinstallprompt (Android/Chrome)
+
+  // Capture Chrome's native install event before it fires
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
+  function isIos() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  }
+
+  function isInStandaloneMode() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+  }
+
+  function showInstallBanner() {
+    // Don't show if already installed, or user already dismissed
+    if (isInStandaloneMode()) return;
+    if (localStorage.getItem('clear-install-dismissed')) return;
+
+    const banner = document.getElementById('install-banner');
+    banner.style.display = 'block';
+
+    if (isIos()) {
+      // iPhone/iPad — manual steps, no programmatic prompt available
+      banner.innerHTML = `<div class="install-card">
+        <div class="install-top">
+          <div class="install-icon">☪️</div>
+          <div>
+            <div class="install-title">Add Clear to your Home Screen</div>
+            <div class="install-sub">Opens like a real app — no browser bar, works offline.</div>
+          </div>
+        </div>
+        <div class="install-steps">
+          <div class="install-step">
+            <div class="install-step-num">1</div>
+            <span class="install-step-icon">⬆️</span>
+            <span>Tap the <strong>Share</strong> button at the bottom of Safari <span class="ios-arrow">↑</span></span>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">2</div>
+            <span class="install-step-icon">➕</span>
+            <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+          </div>
+          <div class="install-step">
+            <div class="install-step-num">3</div>
+            <span class="install-step-icon">✅</span>
+            <span>Tap <strong>Add</strong> — the app icon appears on your home screen</span>
+          </div>
+        </div>
+        <div class="install-btns">
+          <button class="install-btn-dismiss" onclick="dismissInstall()">Maybe later</button>
+          <button class="install-btn-primary" onclick="dismissInstall()">Got it ✓</button>
+        </div>
+      </div>`;
+    } else if (deferredInstallPrompt) {
+      // Android Chrome — one-tap native install
+      banner.innerHTML = `<div class="install-card">
+        <div class="install-top">
+          <div class="install-icon">☪️</div>
+          <div>
+            <div class="install-title">Install Clear on your device</div>
+            <div class="install-sub">Adds an icon to your home screen. Works offline. No App Store needed.</div>
+          </div>
+        </div>
+        <div class="install-btns">
+          <button class="install-btn-dismiss" onclick="dismissInstall()">Not now</button>
+          <button class="install-btn-primary" onclick="triggerInstall()">Install app</button>
+        </div>
+      </div>`;
+    } else {
+      // Desktop or unsupported — show manual instructions
+      banner.innerHTML = `<div class="install-card">
+        <div class="install-top">
+          <div class="install-icon">☪️</div>
+          <div>
+            <div class="install-title">Install Clear on your device</div>
+            <div class="install-sub">In your browser menu, look for "Install app" or "Add to Home Screen".</div>
+          </div>
+        </div>
+        <div class="install-btns">
+          <button class="install-btn-dismiss" onclick="dismissInstall()">Dismiss</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  async function triggerInstall() {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    dismissInstall();
+    if (outcome === 'accepted') {
+      showToast('App installed! Find Clear on your home screen. 🎉', 4000);
+    }
+  }
+
+  function dismissInstall() {
+    localStorage.setItem('clear-install-dismissed', '1');
+    const banner = document.getElementById('install-banner');
+    banner.style.display = 'none';
+  }
+
+  // If user already dismissed onboarding, check install on load after delay
+  function maybeShowInstallLater() {
+    if (!localStorage.getItem('clear-ob-done')) return; // onboarding will handle it
+    setTimeout(showInstallBanner, 2000);
+  }
+  function initOnboarding() {
+    if (localStorage.getItem('clear-ob-done')) {
+      document.getElementById('onboarding').style.display = 'none';
+    }
+  }
+
+  /* ===== NOTIFICATIONS + SERVICE WORKER ===== */
+  let swReg = null;
+
+  async function initNotifications() {
+    // Register service worker first (works even without notification permission)
+    if ('serviceWorker' in navigator) {
+      try {
+        swReg = await navigator.serviceWorker.register('./sw.js');
+        // Listen for messages back from SW
+        navigator.serviceWorker.addEventListener('message', e => {
+          if (e.data && e.data.type === 'ALARM_CANCELLED') {
+            showToast('Daily reminders turned off.');
+          }
+        });
+      } catch(err) {
+        console.warn('SW registration failed:', err);
+      }
+    }
+
+    // If already granted, re-schedule in case SW restarted (browser update, device reboot)
+    if (Notification.permission === 'granted') {
+      sendAlarmToSW();
+      return; // bar already dismissed
+    }
+
+    if (localStorage.getItem('clear-notif-dismissed')) return;
+    if (!('Notification' in window)) return;
+
+    const bar = document.getElementById('notif-bar-wrap');
+    bar.innerHTML = `<div class="notif-bar">
+      <div class="notif-bar-text">🔔 Get a daily 9 PM reminder to log — even when the tab is closed.</div>
+      <button class="notif-bar-btn" onclick="requestNotif()">Enable reminders</button>
+      <button class="notif-bar-dismiss" onclick="dismissNotif()" aria-label="Dismiss">×</button>
+    </div>`;
+  }
+
+  async function requestNotif() {
+    const perm = await Notification.requestPermission();
+    localStorage.setItem('clear-notif-dismissed', '1');
+    document.getElementById('notif-bar-wrap').innerHTML = '';
+    if (perm === 'granted') {
+      sendAlarmToSW();
+      showToast('Reminders enabled ✓ — you\'ll be nudged at 9 PM every day.', 4000);
+    } else {
+      showToast('Permission denied — you can enable it in browser settings.', 4000);
+    }
+  }
+
+  function dismissNotif() {
+    localStorage.setItem('clear-notif-dismissed', '1');
+    document.getElementById('notif-bar-wrap').innerHTML = '';
+  }
+
+  function sendAlarmToSW() {
+    // Tell the service worker to schedule 9:00 PM daily
+    if (!swReg) return;
+    const sw = swReg.active || swReg.installing || swReg.waiting;
+    if (sw) {
+      sw.postMessage({ type: 'SCHEDULE_NOTIFICATION', hour: 21, minute: 0 });
+    } else {
+      // SW not yet active — wait for it
+      swReg.addEventListener('updatefound', () => {
+        swReg.installing.addEventListener('statechange', function() {
+          if (this.state === 'activated') {
+            this.postMessage({ type: 'SCHEDULE_NOTIFICATION', hour: 21, minute: 0 });
+          }
+        });
+      });
+    }
+  }
+
+  /* ===== MODALS ===== */
+  function closeModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+    selectedTrigger = null;
+    document.querySelectorAll('.trigger-btn').forEach(b => b.classList.remove('selected'));
+    noteTargetDay = null;
+  }
+
+  function resetTracker() { document.getElementById('modal-reset').classList.add('open'); }
+
+  function confirmReset() {
+    closeModals();
+    state = { days: {}, notes: {}, currentDay: 1 };
+    saveData();
+    buildGrid();
+    showToast('Tracker reset. Fresh start. 🌱');
+  }
+
+  function initiateRelapse() {
+    const day = state.currentDay;
+    if (day > TOTAL) { showToast('Challenge complete! 🎉'); return; }
+    document.getElementById('modal-relapse').classList.add('open');
+  }
+
+  function selectTrigger(btn) {
+    document.querySelectorAll('.trigger-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedTrigger = btn.dataset.trigger;
+  }
+
+  function confirmRelapse() {
+    const day = state.currentDay;
+    state.days[day] = 'fail';
+    if (selectedTrigger) {
+      if (!state.notes[day]) state.notes[day] = '';
+      state.notes[day] = 'Trigger: ' + selectedTrigger + (state.notes[day] ? '. ' + state.notes[day] : '');
+    }
+    if (day < TOTAL) state.currentDay = day + 1;
+    saveData();
+    closeModals();
+    buildGrid();
+    showToast('Day ' + day + ' logged. Make wudu, and get back up.', 4000);
+  }
+
+  /* ===== GRID ===== */
+  function buildGrid() {
+    const grid = document.getElementById('day-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const cell = document.createElement('div');
+      const status = state.days[i];
+      const isCurrent = i === state.currentDay;
+      const isFuture = i > state.currentDay;
+
+      cell.className = 'day-cell';
+      if (status === 'done') { cell.classList.add('done'); cell.innerHTML = '<span class="tick">✓</span>'; }
+      else if (status === 'fail') { cell.classList.add('fail'); cell.innerHTML = '<span class="tick">✗</span>'; }
+      else if (isFuture) { cell.classList.add('future'); cell.textContent = i; }
+      else { cell.textContent = i; }
+
+      if (isCurrent) cell.classList.add('today');
+
+      // Logged days and today are tappable (for notes/edit)
+      if (status || isCurrent) {
+        cell.addEventListener('click', (function(day) {
+          return function(e) { e.stopPropagation(); openNoteModal(day); };
+        })(i));
+        cell.title = state.notes[i] ? '📝 ' + state.notes[i] : (isCurrent ? 'Log today' : 'Tap to add note or edit');
+      }
+
+      grid.appendChild(cell);
+    }
+    updateStats();
+    updateTodayPrompt();
+    updateActionButtons();
+  }
+
+  function updateTodayPrompt() {
+    const day = state.currentDay;
+    const status = state.days[day];
+    const textEl = document.getElementById('today-prompt-text');
+    const subEl = document.getElementById('today-prompt-sub');
+    const badge = document.getElementById('today-status-badge');
+
+    if (day > TOTAL) {
+      textEl.textContent = '🎉 Challenge complete!';
+      subEl.textContent = 'You did it. May Allah bless your journey.';
+      badge.innerHTML = '';
+      return;
+    }
+
+    if (status === 'done') {
+      textEl.textContent = 'Day ' + day + ' — logged!';
+      subEl.textContent = 'Alhamdulillah. See you tomorrow.';
+      badge.innerHTML = '<span class="today-done-badge">✓ Clean</span>';
+    } else if (status === 'fail') {
+      textEl.textContent = 'Day ' + day + ' logged.';
+      subEl.textContent = 'Get back up. Tomorrow is a new day.';
+      badge.innerHTML = '<span class="today-done-badge" style="background:var(--danger-light);color:var(--danger);">Relapsed</span>';
+    } else {
+      textEl.textContent = 'Day ' + day + ' — how did it go?';
+      subEl.textContent = 'Tap below to log today';
+      badge.innerHTML = '';
+    }
+  }
+
+  function updateActionButtons() {
+    const day = state.currentDay;
+    const status = state.days[day];
+    const alreadyLogged = !!status;
+    document.getElementById('btn-clean').disabled = alreadyLogged || day > TOTAL;
+    document.getElementById('btn-relapse').disabled = alreadyLogged || day > TOTAL;
+  }
+
+  function openNoteModal(day) {
+    const status = state.days[day];
+    if (!status && day !== state.currentDay) return;
+    noteTargetDay = day;
+    const title = document.getElementById('note-modal-title');
+    const textarea = document.getElementById('note-textarea');
+    title.textContent = 'Day ' + day + (status === 'done' ? ' — Clean ✓' : status === 'fail' ? ' — Relapsed' : '');
+    textarea.value = state.notes[day] || '';
+    document.getElementById('modal-note').classList.add('open');
+  }
+
+  function saveNote() {
+    if (!noteTargetDay) return;
+    const val = document.getElementById('note-textarea').value.trim();
+    if (val) state.notes[noteTargetDay] = val;
+    else delete state.notes[noteTargetDay];
+    saveData();
+    closeModals();
+    buildGrid();
+    showToast('Note saved.');
+  }
+
+  function deleteNoteDay() {
+    if (!noteTargetDay) return;
+    const day = noteTargetDay;
+    delete state.days[day];
+    delete state.notes[day];
+    if (state.currentDay > day) state.currentDay = day;
+    saveData();
+    closeModals();
+    buildGrid();
+    showToast('Day ' + day + ' deleted.');
+  }
+
+  function markDay(clean) {
+    const day = state.currentDay;
+    if (day > TOTAL || state.days[day]) return;
+    state.days[day] = clean ? 'done' : 'fail';
+    if (day < TOTAL) state.currentDay = day + 1;
+    saveData();
+    buildGrid();
+    showToast(clean ? 'Day ' + day + ' ✓ — Alhamdulillah, keep going!' : 'Day ' + day + ' logged.', 4000);
+  }
+
+  function updateStats() {
+    let clean = 0, best = 0, cur = 0, streak = 0;
+    for (let i = 1; i <= TOTAL; i++) {
+      if (state.days[i] === 'done') { clean++; cur++; best = Math.max(best, cur); }
+      else if (state.days[i] === 'fail') { cur = 0; }
+    }
+    for (let i = state.currentDay - 1; i >= 1; i--) {
+      if (state.days[i] === 'done') streak++;
+      else break;
+    }
+    document.getElementById('streak-num').textContent = streak;
+    document.getElementById('streak-sub').textContent = streak === 0 ? 'Start your journey today' : streak >= 14 ? '🔥 MashaAllah — unstoppable!' : streak >= 7 ? '💪 One week strong!' : 'Keep building!';
+    document.getElementById('stat-clean').textContent = clean;
+    document.getElementById('stat-best').textContent = best;
+    document.getElementById('stat-remain').textContent = Math.max(0, TOTAL - (state.currentDay - 1));
+  }
+
+  /* ===== TASKS ===== */
+  function getCompletedPhaseTaskCount(phase) {
+    return phase.tasks.filter(t => tasks[t.id]).length;
+  }
+
+  function buildTasks() {
+    const container = document.getElementById('tasks-container');
+    container.innerHTML = '';
+    let totalDone = 0, totalAll = 0;
+    let prevPhaseComplete = true;
+
+    TASK_PHASES.forEach((phase, pi) => {
+      const doneInPhase = getCompletedPhaseTaskCount(phase);
+      const allInPhase = phase.tasks.length;
+      totalDone += doneInPhase;
+      totalAll += allInPhase;
+
+      const cleanDays = Object.values(state.days).filter(v => v === 'done').length;
+      const isUnlocked = prevPhaseComplete || cleanDays >= phase.unlockAfter;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'tasks-phase';
+
+      const header = document.createElement('div');
+      header.className = 'phase-header';
+      header.innerHTML = `
+        <span class="phase-badge ${isUnlocked ? 'unlocked' : 'locked'}">${isUnlocked ? 'Unlocked' : 'Locked'}</span>
+        <span class="phase-label">${phase.label}</span>
+        ${!isUnlocked ? '<span class="phase-lock">Complete phase ' + pi + ' to unlock</span>' : ''}
+      `;
+      wrap.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'tasks-grid';
+
+      phase.tasks.forEach(t => {
+        const card = document.createElement('div');
+        const done = tasks[t.id];
+        card.className = 'task-card' + (done ? ' completed' : '') + (!isUnlocked ? ' locked-card' : '');
+        card.innerHTML = `<div class="task-icon">${t.icon}</div><div class="task-title">${t.title}</div><div class="task-desc">${t.desc}</div>`;
+        if (isUnlocked) card.onclick = () => toggleTask(t.id);
+        grid.appendChild(card);
+      });
+
+      wrap.appendChild(grid);
+      container.appendChild(wrap);
+      prevPhaseComplete = doneInPhase === allInPhase;
+    });
+
+    updateProgress(totalDone, totalAll);
+  }
+
+  function toggleTask(id) {
+    tasks[id] = !tasks[id];
+    saveData();
+    buildTasks();
+    showToast(tasks[id] ? 'Task completed ✓' : 'Task unmarked');
+  }
+
+  function updateProgress(done, total) {
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + '%';
+    const msgs = [
+      'Start with Phase 1 — your first line of defence',
+      'Good start — keep going!',
+      'Building momentum!',
+      'More than halfway — great work!',
+      'Almost there — incredible commitment!',
+      'Toolkit complete. You\'re equipped. 🌱'
+    ];
+    const idx = pct === 100 ? 5 : pct >= 80 ? 4 : pct >= 60 ? 3 : pct >= 40 ? 2 : pct > 0 ? 1 : 0;
+    document.getElementById('prog-sub').textContent = msgs[idx];
+  }
+
+  /* ===== PAGE SWITCH ===== */
+  function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'quit') buildTasks();
+  }
+
+  /* ===== DARK MODE ===== */
+  function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = theme === 'dark' ? 'Light' : 'Dark';
+  }
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') || getSystemTheme();
+    const next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('clear-theme', next);
+    applyTheme(next);
+  }
+  function initTheme() {
+    const saved = localStorage.getItem('clear-theme');
+    applyTheme(saved || getSystemTheme());
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('clear-theme')) applyTheme(e.matches ? 'dark' : 'light');
+    });
+  }
+
+  /* ===== INIT ===== */
+  initTheme();
+  initOnboarding();
+  loadData();
+  buildGrid();
+  buildTasks();
+  initNotifications();
+  maybeShowInstallLater();
+</script>
+</body>
+</html>
